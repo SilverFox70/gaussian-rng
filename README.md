@@ -13,7 +13,7 @@ Skewness refers to the asymmetry in the probability distribution of a real-value
 - **Positive skew (`skew > 0`)**: More values are concentrated **below the mean**, with a longer tail to the right.
 - **Negative skew (`skew < 0`)**: More values are concentrated **above the mean**, with a longer tail to the left.
 
-#### **How We Apply Skewness in Your Code**
+#### **How We Apply Skewness in the Distribution**
 
 In the function:
 
