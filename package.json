@@ -1,0 +1,24 @@
+{
+  "name": "gaussian-rng",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "package for generating random numbers with Gaussian Distribution",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest"
+  },
+  "keywords": [
+    "gaussian",
+    "normal",
+    "random",
+    "generator"
+  ],
+  "author": "William F Brinkert",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.12.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.4"
+  }
+}
