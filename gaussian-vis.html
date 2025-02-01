@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gaussian Distribution Visualizer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: space-between;
+        padding: 20px;
+        max-width: 1440px;
+        margin: auto;
+      }
+      .form-container {
+        width: 25%;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #f9f9f9;
+      }
+      .chart-container {
+        width: 70%;
+      }
+      label,
+      input {
+        display: block;
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form-container">
+      <h2>Gaussian Parameters</h2>
+      <label>Mean: <input type="number" id="mean" value="88" /></label>
+      <label>Std Dev: <input type="number" id="stdDev" value="5" /></label>
+      <label>Min: <input type="number" id="min" value="50" /></label>
+      <label>Max: <input type="number" id="max" value="100" /></label>
+      <label>Skew: <input type="number" id="skew" value="0" /></label>
+      <button onclick="updateChart()">Generate</button>
+    </div>
+
+    <div class="chart-container">
+      <h1>Gaussian Distribution Visualizer</h1>
+      <canvas id="gaussianChart" width="1440" height="600"></canvas>
+    </div>
+
+    <script>
+      function gaussianRandom(mean, stdDev, skew) {
+        let u1 = Math.random();
+        let u2 = Math.random();
+        let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        let skewAdjusted = z0 + skew * (z0 ** 3 - z0);
+        return skewAdjusted * stdDev + mean;
+      }
+
+      function generateData(mean, stdDev, min, max, skew, samples = 10000) {
+        let data = [];
+        let bins = {};
+
+        for (let i = min; i <= max; i++) {
+          bins[i] = 0;
+        }
+
+        for (let i = 0; i < samples; i++) {
+          let value = Math.round(gaussianRandom(mean, stdDev, skew));
+          if (value >= min && value <= max) {
+            bins[value]++;
+          }
+        }
+
+        return {
+          labels: Object.keys(bins),
+          values: Object.values(bins),
+        };
+      }
+
+      let ctx = document.getElementById("gaussianChart").getContext("2d");
+      let chart;
+
+      function updateChart() {
+        let mean = parseFloat(document.getElementById("mean").value);
+        let stdDev = parseFloat(document.getElementById("stdDev").value);
+        let min = parseFloat(document.getElementById("min").value);
+        let max = parseFloat(document.getElementById("max").value);
+        let skew = parseFloat(document.getElementById("skew").value);
+
+        let distribution = generateData(mean, stdDev, min, max, skew);
+
+        if (chart) {
+          chart.destroy();
+        }
+
+        chart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: distribution.labels,
+            datasets: [
+              {
+                label: "Frequency",
+                data: distribution.values,
+                backgroundColor: "rgba(54, 162, 235, 0.5)",
+                borderColor: "rgba(54, 162, 235, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "Frequency",
+                },
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: "Free Throw Percentage",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      updateChart();
+    </script>
+  </body>
+</html>
