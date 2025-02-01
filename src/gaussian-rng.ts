@@ -103,3 +103,8 @@ export function generateGaussianRandom({
   }
   throw new Error("Either min/max or mean/stdDev must be provided");
 }
+
+// Export aliases for shorter function names
+export const gRand = gaussianRandom;
+export const bgRand = boundedGaussianRandom;
+export const genGRand = generateGaussianRandom;
