@@ -3,7 +3,7 @@ import {
   gaussianRandom,
   boundedGaussianRandom,
   generateGaussianRandom,
-} from "../src/gaussian-rng.js";
+} from "../src/index.js";
 
 describe("Gaussian Random Number Generator", () => {
   test("gaussianRandom generates values around the mean", () => {
