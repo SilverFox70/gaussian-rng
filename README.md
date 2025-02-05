@@ -10,27 +10,42 @@ With support for bounded Gaussian distributions (ensuring values stay within a g
 
 Skewness refers to the asymmetry in the probability distribution of a real-valued random variable. In an ideal **normal (Gaussian) distribution**, the skewness is **zero**, meaning the distribution is perfectly symmetric around the mean.
 
-- **Positive skew (`skew > 0`)**: More values are concentrated **below the mean**, with a longer tail to the right.
-- **Negative skew (`skew < 0`)**: More values are concentrated **above the mean**, with a longer tail to the left.
+- **Positive skew (`skew > 0`)**: Moves **up to 25% of below-mean values above the mean**, making the right tail heftier.
+- **Negative skew (`skew < 0`)**: Moves **up to 25% of above-mean values below the mean**, making the left tail heftier.
 
-#### **How We Apply Skewness in the Distribution**
+### **How We Apply Skewness in the Distribution**
 
-In the function:
+Instead of modifying tail steepness, our approach **shifts a percentage of values across the mean** while maintaining a natural-ish Gaussian shape. The function:
 
 ```typescript
-let skewAdjusted = z0 + skew * (z0 ** 3 - z0);
+function gaussianRandom(mean, stdDev, skew) {
+  let u1 = Math.random();
+  let u2 = Math.random();
+  let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+  let value = z0 * stdDev + mean;
+
+  // Apply skew: Move a proportion of values across the mean
+  let flipChance = Math.abs(skew) * 0.25; // Up to 25% shift
+  if (skew > 0 && value < mean && Math.random() < flipChance) {
+    value = mean + (mean - value);
+  } else if (skew < 0 && value > mean && Math.random() < flipChance) {
+    value = mean - (value - mean);
+  }
+  return value;
+}
 ```
 
-We use a **cubic transformation** (`z0 ** 3 - z0`), which subtly shifts values toward one side of the mean. This works as follows:
+This method ensures that **skew values range from `-1` to `+1`**, with proportional movement:
 
-- The term `(z0 ** 3 - z0)` **exaggerates extreme values**, amplifying the skew.
-- Multiplying it by `skew` allows control over how much skew is introduced.
-- **Higher values of `skew`** push more numbers toward the left (negative skew).
-- **Lower values of `skew`** push more numbers toward the right (positive skew).
+| Skew Value | Effect                                     |
+| ---------- | ------------------------------------------ |
+| `-1`       | Moves **25% of above-mean values below**   |
+| `-0.5`     | Moves **12.5% of above-mean values below** |
+| `0`        | No change, normal Gaussian                 |
+| `0.5`      | Moves **12.5% of below-mean values above** |
+| `1`        | Moves **25% of below-mean values above**   |
 
-This is a simple way to introduce skewness without overly distorting the distribution.
-
----
+This keeps the Gaussian distribution mostly intact while shifting values appropriately.
 
 ## **Explanation of the Box-Muller Transform**
 
@@ -73,89 +88,15 @@ The **Box-Muller transform** is a method for generating normally distributed ran
 
 ---
 
-### **Summary**
-
-1. **Skewing the distribution**:
-
-   - Uses `skew * (z0 ** 3 - z0)` to introduce asymmetry.
-   - Positive `skew` skews left, negative `skew` skews right.
-
-2. **Box-Muller Transform**:
-   - Converts two uniform random numbers into a normal (Gaussian) distribution.
-   - Scales results to a given **mean** and **standard deviation**.
-
----
-
 ## **Example Use**
 
-imagine we have a basketball player who is the 90th percentile for the league in shooting free throws, and we know that the league average is 70% for making free throw shots. From this can we develop parameters and feed them to one of a gaussian random number gens to create a realistic set of numbers for this player for a game or for a season.
+Imagine we have a basketball player who is the 90th percentile for the league in shooting free throws, and we know that the league average is 70% for making free throw shots. From this, we can develop parameters and feed them to a Gaussian random number generator to create a realistic set of numbers for this player over multiple games.
 
-### **Step 1: Understanding the Distribution**
-
-- League average free throw percentage: 70%
-- 90th percentile shooter: This means the player is better than 90% of the league.
-- Expected shooting percentage: Likely higher than 70%, possibly around 85-90%.
-- Distribution Type: Normally distributed around the player's true shooting ability.
-
-### **Step 2: Estimating Parameters for Gaussian RNG**
-
-To use our gaussianRandom function, we need:
-
-1. Mean (μ) → The player's expected free throw percentage.
-
-- Let's assume 88% (based on their percentile).
-
-2. Standard Deviation (σ) → The variance in free throws per game.
-
-- A typical standard deviation for shooting percentages is ~5-7%.
-- Let's use σ = 5 to represent normal variance.
-
-3. Skew (skew) → If we think the player is more consistent than average, a small negative skew could reflect fewer poor shooting games.
-
-### **Step 3: Implementing the Function**
-
-We can now generate realistic free throw percentages per game:
-
-typescript
-
-```
+```typescript
 const freeThrowPercentage = gaussianRandom({ mean: 88, stdDev: 5, skew: -0.5 });
-console.log(`Simulated Free Throw Percentage: ${freeThrowPercentage.toFixed(2)}%`);
-```
-
-#### **What This Does**
-
-- Generates a realistic free throw percentage for a game.
-- Centered at 88%, but allows natural variance (~5%).
-- The negative skew (-0.5) slightly reduces extreme low shooting nights.
-
-### **Step 4: Bounded Percentages**
-
-Since free throw percentages must be between 0% and 100%, we should ensure values stay within bounds:
-
-typescript
-
-```
-const freeThrowPercentage = boundedGaussianRandom({ min: 50, max: 100, mean: 88, stdDev: 5, skew: -0.5 });
-console.log(`Bounded Free Throw Percentage: ${freeThrowPercentage.toFixed(2)}%`);
-```
-
-#### **Why Use Bounded Values?**
-
-- Prevents impossible results like >100% or <0%.
-- A minimum of 50% ensures even on a bad day, an elite shooter doesn’t fall too low.
-
-#### **Step 5: Simulating Multiple Games**
-
-If we want to simulate a season, we can run multiple trials:
-
-typescript
-
-```
-const games = 10; // Simulate 10 games
-const gameResults = Array.from({ length: games }, () =>
-  boundedGaussianRandom({ min: 50, max: 100, mean: 88, stdDev: 5, skew: -0.5 })
+console.log(
+  `Simulated Free Throw Percentage: ${freeThrowPercentage.toFixed(2)}%`
 );
-
-console.log("Simulated Free Throw Percentages for 10 Games:", gameResults.map(p => p.toFixed(2) + "%"));
 ```
+
+This ensures a **realistic variation in free throw percentages**, allowing for **occasional high and low performances** while keeping the overall distribution accurate.
