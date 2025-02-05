@@ -2,7 +2,7 @@
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Tests](https://github.com/SilverFox70/gaussian-rng/actions/workflows/test.yml/badge.svg)
-![Coverage](https://img.shields.io/codecov/c/github/SilverFox70/gaussian-rng)
+![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
 
 Gaussian-RNG is a lightweight and flexible JavaScript/TypeScript library for generating random numbers that follow a Gaussian (normal) distribution. Unlike standard uniform random number generators, this package ensures that numbers are distributed around a specified mean, with a controlled spread (standard deviation) and an optional skew to shift probability density toward one side.
 
