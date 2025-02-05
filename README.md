@@ -1,42 +1,61 @@
 # Gaussian Random Number Generator
 
+![License](https://img.shields.io/badge/license-MIT-green.svg)
+![Tests](https://github.com/SilverFox70/gaussian-rng/actions/workflows/test.yml/badge.svg)
+![Coverage](https://img.shields.io/codecov/c/github/SilverFox70/gaussian-rng)
+
 Gaussian-RNG is a lightweight and flexible JavaScript/TypeScript library for generating random numbers that follow a Gaussian (normal) distribution. Unlike standard uniform random number generators, this package ensures that numbers are distributed around a specified mean, with a controlled spread (standard deviation) and an optional skew to shift probability density toward one side.
 
-This library is particularly useful in scientific simulations, statistical modeling, procedural content generation (e.g., gaming, terrain generation), AI randomness tuning, finance, and Monte Carlo simulations, where naturally occurring variations tend to follow a normal distribution rather than uniform randomness.
+This library can be useful in scientific simulations, statistical modeling, procedural content generation (e.g., gaming, terrain generation), AI randomness tuning, finance, and Monte Carlo simulations, where naturally occurring variations tend to follow a normal distribution rather than uniform randomness.
 
 With support for bounded Gaussian distributions (ensuring values stay within a given range), custom mean and standard deviation settings, and skew adjustments, Gaussian-RNG provides fine-grained control over random number generation in applications requiring realistic randomness.
 
-### **Understanding Skew in the Gaussian Distribution**
+## **Understanding Skew in the Gaussian Distribution**
 
 Skewness refers to the asymmetry in the probability distribution of a real-valued random variable. In an ideal **normal (Gaussian) distribution**, the skewness is **zero**, meaning the distribution is perfectly symmetric around the mean.
 
-- **Positive skew (`skew > 0`)**: More values are concentrated **below the mean**, with a longer tail to the right.
-- **Negative skew (`skew < 0`)**: More values are concentrated **above the mean**, with a longer tail to the left.
+- **Positive skew (`skew > 0`)**: Moves **up to 25% of below-mean values above the mean**, making the right tail heftier.
+- **Negative skew (`skew < 0`)**: Moves **up to 25% of above-mean values below the mean**, making the left tail heftier.
 
-#### **How We Apply Skewness in the Distribution**
+### **How We Apply Skewness in the Distribution**
 
-In the function:
+Instead of modifying tail steepness, our approach **shifts a percentage of values across the mean** while maintaining a natural-ish Gaussian shape. The function:
 
 ```typescript
-let skewAdjusted = z0 + skew * (z0 ** 3 - z0);
+function gaussianRandom(mean, stdDev, skew) {
+  let u1 = Math.random();
+  let u2 = Math.random();
+  let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+  let value = z0 * stdDev + mean;
+
+  // Apply skew: Move a proportion of values across the mean
+  let flipChance = Math.abs(skew) * 0.25; // Up to 25% shift
+  if (skew > 0 && value < mean && Math.random() < flipChance) {
+    value = mean + (mean - value);
+  } else if (skew < 0 && value > mean && Math.random() < flipChance) {
+    value = mean - (value - mean);
+  }
+  return value;
+}
 ```
 
-We use a **cubic transformation** (`z0 ** 3 - z0`), which subtly shifts values toward one side of the mean. This works as follows:
+This method ensures that **skew values range from `-1` to `+1`**, with proportional movement:
 
-- The term `(z0 ** 3 - z0)` **exaggerates extreme values**, amplifying the skew.
-- Multiplying it by `skew` allows control over how much skew is introduced.
-- **Higher values of `skew`** push more numbers toward the left (negative skew).
-- **Lower values of `skew`** push more numbers toward the right (positive skew).
+| Skew Value | Effect                                     |
+| ---------- | ------------------------------------------ |
+| `-1`       | Moves **25% of above-mean values below**   |
+| `-0.5`     | Moves **12.5% of above-mean values below** |
+| `0`        | No change, normal Gaussian                 |
+| `0.5`      | Moves **12.5% of below-mean values above** |
+| `1`        | Moves **25% of below-mean values above**   |
 
-This is a simple way to introduce skewness without overly distorting the distribution.
+This keeps the Gaussian distribution mostly intact while shifting values appropriately.
 
----
-
-### **Explanation of the Box-Muller Transform**
+## **Explanation of the Box-Muller Transform**
 
 The **Box-Muller transform** is a method for generating normally distributed random numbers from **uniformly distributed random numbers** (i.e., `Math.random()`).
 
-#### **How the Box-Muller Transform Works**
+### **How the Box-Muller Transform Works**
 
 1. Generate **two independent uniform random numbers** `u1` and `u2` in the range `[0,1]`:
    ```typescript
@@ -65,7 +84,7 @@ The **Box-Muller transform** is a method for generating normally distributed ran
    - Values are centered at `mean`
    - The spread is controlled by `stdDev`
 
-#### **Why Use the Box-Muller Transform?**
+### **Why Use the Box-Muller Transform?**
 
 - It's efficient: generates **two** Gaussian numbers per transformation.
 - Uses only basic arithmetic and trigonometry.
@@ -73,15 +92,15 @@ The **Box-Muller transform** is a method for generating normally distributed ran
 
 ---
 
-### **Summary**
+## **Example Use**
 
-1. **Skewing the distribution**:
+Imagine we have a basketball player who is the 90th percentile for the league in shooting free throws, and we know that the league average is 70% for making free throw shots. From this, we can develop parameters and feed them to a Gaussian random number generator to create a realistic set of numbers for this player over multiple games.
 
-   - Uses `skew * (z0 ** 3 - z0)` to introduce asymmetry.
-   - Positive `skew` skews left, negative `skew` skews right.
+```typescript
+const freeThrowPercentage = gaussianRandom({ mean: 88, stdDev: 5, skew: -0.5 });
+console.log(
+  `Simulated Free Throw Percentage: ${freeThrowPercentage.toFixed(2)}%`
+);
+```
 
-2. **Box-Muller Transform**:
-   - Converts two uniform random numbers into a normal (Gaussian) distribution.
-   - Scales results to a given **mean** and **standard deviation**.
-
----
+This ensures a **realistic variation in free throw percentages**, allowing for **occasional high and low performances** while keeping the overall distribution accurate.

@@ -23,8 +23,21 @@ export function gaussianRandom({
   let u1 = Math.random();
   let u2 = Math.random();
   let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
-  let skewAdjusted = z0 + skew * (z0 ** 3 - z0);
-  return skewAdjusted * stdDev + mean;
+  let value = z0 * stdDev + mean;
+
+  // Apply skew by shifting a percentage of values across the mean
+  if (skew !== 0) {
+    let flipChance = Math.abs(skew) * 0.25; // Up to 25% shift
+
+    if (skew > 0 && value < mean && Math.random() < flipChance) {
+      // Move some lower values above the mean
+      value = mean + (mean - value);
+    } else if (skew < 0 && value > mean && Math.random() < flipChance) {
+      // Move some higher values below the mean
+      value = mean - (value - mean);
+    }
+  }
+  return value;
 }
 
 /**
@@ -103,3 +116,8 @@ export function generateGaussianRandom({
   }
   throw new Error("Either min/max or mean/stdDev must be provided");
 }
+
+// Export aliases for shorter function names
+export const gRand = gaussianRandom;
+export const bgRand = boundedGaussianRandom;
+export const genGRand = generateGaussianRandom;
