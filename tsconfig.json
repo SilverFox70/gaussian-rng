@@ -12,7 +12,10 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "declarationDir": "dist/types",
+    "rootDir": "src",
+    "allowSyntheticDefaultImports": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "coverage", "tests"]
