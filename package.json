@@ -1,16 +1,17 @@
 {
   "name": "gaussian-rng",
   "type": "module",
-  "version": "1.0.2",
+  "version": "1.0.6",
   "description": "A Gaussian random number generator with mean, standard deviation, and skew control.",
-  "main": "dist/index.cjs",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/esm/index.js",
   "exports": {
-    "import": "./dist/index.js",
-    "require": "./dist/index.cjs"
+    "import": "./dist/esm/index.js",
+    "require": "./dist/cjs/index.cjs"
   },
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc && cp dist/index.js dist/index.cjs",
+    "build": "tsc --project tsconfig.json && tsc --project tsconfig.cjs.json && mv dist/cjs/index.js dist/cjs/index.cjs",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
     "prepare": "npm run build"
