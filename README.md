@@ -6,9 +6,66 @@
 
 Gaussian-RNG is a lightweight and flexible JavaScript/TypeScript library for generating random numbers that follow a Gaussian (normal) distribution. Unlike standard uniform random number generators, this package ensures that numbers are distributed around a specified mean, with a controlled spread (standard deviation) and an optional skew to shift probability density toward one side.
 
+> **Important:** Setting a nonzero skew value intentionally pulls the output away from a perfectly normal (Gaussian) distribution. Instead of simply adjusting the spread, skew will shift a percentage of values across the mean, altering the symmetry of the distribution.
+
 This library can be useful in scientific simulations, statistical modeling, procedural content generation (e.g., gaming, terrain generation), AI randomness tuning, finance, and Monte Carlo simulations, where naturally occurring variations tend to follow a normal distribution rather than uniform randomness.
 
 With support for bounded Gaussian distributions (ensuring values stay within a given range), custom mean and standard deviation settings, and skew adjustments, Gaussian-RNG provides fine-grained control over random number generation in applications requiring realistic randomness.
+
+## **Installation**
+
+Install via npm or yarn:
+
+```bash
+npm install gaussian-rng
+```
+
+or
+
+```bash
+yarn add gaussian-rng
+```
+
+## **Example Usage**
+
+### **Generating a Basic Gaussian Random Number**
+
+```typescript
+import { gaussianRandom } from "gaussian-rng";
+
+// Generate a normally distributed random number with mean 0 and stdDev 1
+const randomValue = gaussianRandom({ mean: 0, stdDev: 1 });
+console.log("Random Value:", randomValue);
+```
+
+### **Generating a Skewed Gaussian Random Number**
+
+```typescript
+import { gaussianRandom } from "gaussian-rng";
+
+// Generate a random number with a positive skew (shifts some below-mean values above the mean)
+const skewedValue = gaussianRandom({ mean: 50, stdDev: 10, skew: 0.5 });
+console.log("Skewed Value:", skewedValue);
+```
+
+### **Generating a Bounded Gaussian Random Number**
+
+This would mimic rolling three 6-sided dice and summing the values of all three.
+
+```typescript
+import { boundedGaussianRandom } from "gaussian-rng";
+
+// Generate a random number within the range [3, 18] with default centered mean and standard deviation.
+const boundedValue = boundedGaussianRandom({ min: 3, max: 18 });
+console.log("Bounded Value:", boundedValue);
+```
+
+## **Features**
+
+- Customizable Parameters: Specify mean and standard deviation to control the distribution.
+- Optional Skew: Adjust the skew to intentionally pull the distribution away from normal. Positive skew moves up to 25% of below-mean values above the mean; negative skew moves up to 25% of above-mean values below the mean.
+- Bounded Generation: Ensure that generated numbers fall within a specific range.
+- Easy Integration: Designed for use in both JavaScript and TypeScript projects.
 
 ## **Understanding Skew in the Gaussian Distribution**
 
@@ -92,7 +149,7 @@ The **Box-Muller transform** is a method for generating normally distributed ran
 
 ---
 
-## **Example Use**
+## **Additional Example Use**
 
 Imagine we have a basketball player who is the 90th percentile for the league in shooting free throws, and we know that the league average is 70% for making free throw shots. From this, we can develop parameters and feed them to a Gaussian random number generator to create a realistic set of numbers for this player over multiple games.
 
@@ -104,3 +161,13 @@ console.log(
 ```
 
 This ensures a **realistic variation in free throw percentages**, allowing for **occasional high and low performances** while keeping the overall distribution accurate.
+
+## **Visualization**
+
+If you would like to see what your distribution looks like and you have `open` installed globally for viewing `html`, you can clone the repository and
+
+```bash
+open html/gaussian-vis.html
+```
+
+The shown page will allow you see how values will be distributed based on your settings.
